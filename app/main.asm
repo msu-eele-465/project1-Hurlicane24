@@ -82,9 +82,12 @@ SetupP1     bic.b   #BIT0,&P1OUT            ; Clear P1.0 output
             bic.w   #LOCKLPM5,&PM5CTL0       ; Unlock I/O pins
 
 Mainloop    xor.b   #BIT0,&P1OUT            ; Toggle P1.0 every 0.1s
-Wait        mov.w   #50000,R15              ; Delay to R15
+WaitOuter   mov.w   #5,R14                  ; Set outer loop
+Wait        mov.w   #35000,R15              ; Delay to R15
 L1          dec.w   R15                     ; Decrement R15
             jnz     L1                      ; Delay over?
+            dec.w   R14                     ; Decrement outer loop
+            jnz     Wait                    ; Repeat inner loop if R14 != 0
             jmp     Mainloop                ; Again
             NOP
 ;------------------------------------------------------------------------------
