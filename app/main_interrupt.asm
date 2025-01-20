@@ -98,3 +98,21 @@ SetupCompare
 
 mainloop:      
             jmp     mainloop
+
+;------------------------------------------------------------------------------
+;  ISRs
+;------------------------------------------------------------------------------
+ISR_TB0_CCR0:
+            xor.b   #BIT6,  &P6OUT          ; Toggle LED 2
+            bic.w   #CCIFG, &TB0CCTL0       ; Clear interrupt flag
+            reti
+
+;------------------------------------------------------------------------------
+;           Interrupt Vectors
+;------------------------------------------------------------------------------
+            .sect   RESET_VECTOR            ; MSP430 RESET Vector
+            .short  RESET                   ;
+
+            .sect   TIMER0_B0_VECTOR        ; Timer B0 CCR0 Vector
+            .short  ISR_TB0_CCR0
+            .end
