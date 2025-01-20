@@ -66,7 +66,7 @@
 ;******************************************************************************
             .cdecls C,LIST,"msp430.h"  ; Include device header file
 ;-------------------------------------------------------------------------------
-            ;.def    RESET                   ; Export program entry-point to
+            .def    RESET                   ; Export program entry-point to
                                             ; make it known to linker.
             .global __STACK_END
             .sect   .stack                  ; Make stack linker segment ?known?
@@ -77,22 +77,24 @@
 
 RESET       mov.w   #__STACK_END,SP         ; Initialize stack pointer
 StopWDT     mov.w   #WDTPW+WDTHOLD,&WDTCTL  ; Stop WDT
-SetupP1     bic.b   #BIT0,&P1OUT            ; Clear P1.0 output
-            bis.b   #BIT0,&P1DIR            ; P1.0 output
-            bic.w   #LOCKLPM5,&PM5CTL0       ; Unlock I/O pins
 
-Mainloop    xor.b   #BIT0,&P1OUT            ; Toggle P1.0 every 0.1s
-WaitOuter   mov.w   #5,R14                  ; Set outer loop
-Wait        mov.w   #35000,R15              ; Delay to R15
-L1          dec.w   R15                     ; Decrement R15
-            jnz     L1                      ; Delay over?
-            dec.w   R14                     ; Decrement outer loop
-            jnz     Wait                    ; Repeat inner loop if R14 != 0
-            jmp     Mainloop                ; Again
+SetupP6    
+            bis.b   #BIT6,&P6DIR            ; P6.6 output
+            bic.b   #BIT6,&P6OUT            ; Clear P6.6 output
+            bic.w   #LOCKLPM5,&PM5CTL0      ; Unlock I/O pins
+
+SetupTimerB0
+            bis.w   #TBCLR, &TB0CTL         ; Clear timer B0
+            bis.w   #TBSSEL__ACLK, &TB0CTL  ; Select ACLK for timer B0
+            bis.w   #MC__UP, &TB0CTL        ; Set timer to UP mode
+
+SetupCompare
+            mov.w   #16384, &TB0CCR0        ; Move appropriate value into CCR0
+            bis.w   #CCIE,  &TB0CCTL0       ; Enable capture/compare register interrupt
             NOP
-;------------------------------------------------------------------------------
-;           Interrupt Vectors
-;------------------------------------------------------------------------------
-            .sect   RESET_VECTOR            ; MSP430 RESET Vector
-            .short  RESET                   ;
-            .end
+            eint                            ; Global enable 
+            NOP
+            bic.w   #CCIFG, &TB0CCTL0       ; Clear interrupt flag
+
+mainloop:      
+            jmp     mainloop
