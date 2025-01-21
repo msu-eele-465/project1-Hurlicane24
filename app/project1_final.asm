@@ -100,12 +100,15 @@ SetupCompare
             NOP
             bic.w   #CCIFG, &TB0CCTL0       ; Clear interrupt flag
 
-Mainloop    xor.b   #BIT0,&P1OUT            ; Toggle P1.0 every 0.1s
-            jmp     FlashRed
+Mainloop:
+            xor.b   #BIT0,&P1OUT            ; Toggle P1.0 every 0.1s
+            call    #FlashRed               ; Call FlashRed subroutine
 
 FlashRed:
 
 WaitOuter   mov.w   #5,R14                  ; Repeat the inner loop 5 times
+            call    #Wait                   ; Call Wait subroutine
+
 Wait:       mov.w   #35000,R15              ; Delay to R15
 L1          dec.w   R15                     ; Decrement R15
             jnz     L1                      ; Delay over?
